@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>COCO - Camera Social Map</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <!-- 로그인/가입 화면 -->
+    <div id="auth-screen" class="screen active">
+        <div class="auth-container">
+            <div class="logo">
+                <h1>🌸 COCO</h1>
+                <p class="subtitle">ここ — 카메라로 연결되는 순간</p>
+            </div>
+            <div class="auth-form">
+                <input type="text" id="nickname-input" placeholder="닉네임을 입력하세요" maxlength="50" autocomplete="off">
+                <select id="language-select">
+                    <option value="ko">한국어</option>
+                    <option value="en">English</option>
+                    <option value="ja">日本語</option>
+                    <option value="zh">中文</option>
+                    <option value="es">Español</option>
+                    <option value="fr">Français</option>
+                </select>
+                <button id="register-btn" class="btn btn-primary">시작하기</button>
+                <button id="login-btn" class="btn btn-secondary">기존 계정 로그인</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 메인 앱 화면 -->
+    <div id="app-screen" class="screen">
+        <!-- 상단 헤더 -->
+        <header id="app-header">
+            <div class="header-left">
+                <span id="header-user-name" class="user-badge">🌸</span>
+            </div>
+            <div class="header-center">
+                <h2 id="header-title">카메라</h2>
+            </div>
+            <div class="header-right">
+                <button id="mode-toggle" class="icon-btn" title="모드 전환">
+                    <span id="mode-icon">📷</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- 카메라 화면 -->
+        <div id="camera-view" class="view active">
+            <video id="camera-preview" autoplay playsinline></video>
+            <canvas id="capture-canvas" style="display:none;"></canvas>
+
+            <!-- 카메라 오버레이 -->
+            <div id="camera-overlay">
+            <!-- AR 아바타 오버레이 (주변 사용자) -->
+                <div id="nearby-users-overlay"></div>
+
+                <!-- 모드 선택 -->
+                <div id="mode-selector">
+                    <button class="mode-btn active" data-mode="normal">📷 일반</button>
+                    <button class="mode-btn" data-mode="penpal">✉️ 펜팔</button>
+                    <button class="mode-btn" data-mode="explore">🧭 탐험</button>
+                </div>
+
+                <!-- 하단 컨트롤 -->
+                <div id="camera-controls">
+                    <button id="gallery-btn" class="control-btn">🖼️</button>
+                    <button id="capture-btn" class="capture-btn"></button>
+                    <button id="switch-camera-btn" class="control-btn">🔄</button>
+                </div>
+            </div>
+
+            <!-- 촬영 후 리뷰 -->
+            <div id="capture-review" class="hidden">
+                <!-- 사진 + 시즌 오버레이 -->
+                <div id="capture-photo-wrapper">
+                    <img id="captured-image" alt="captured">
+                    <div id="season-overlay"></div>
+                </div>
+
+                <!-- 시간 여행 필터 -->
+                <div id="season-filter-row" class="season-filter-row"></div>
+
+                <!-- AI 스티커 토글 버튼 -->
+                <button id="sticker-toggle-btn" class="sticker-toggle-btn">✨ AI 스티커 만들기</button>
+
+                <!-- AI 스티커 패널 -->
+                <div id="ai-sticker-panel" class="hidden">
+                    <div id="concept-grid" class="concept-grid"></div>
+                    <button id="gen-person-btn" class="btn btn-primary sticker-gen-btn" disabled>✨ 캐릭터 스티커 생성</button>
+                    <div id="sticker-spinner" class="sticker-spinner hidden">
+                        <div class="sticker-spinner-bar"></div>
+                        <p class="sticker-spinner-text">AI가 스티커를 만들고 있어요...</p>
+                    </div>
+                    <div id="sticker-output" class="hidden"></div>
+                </div>
+
+                <!-- 기존 저장 컨트롤 -->
+                <div class="review-controls">
+                    <textarea id="trace-caption" placeholder="이 장소에 남길 메모..."></textarea>
+                    <div class="visibility-selector">
+                        <label>공개 범위:</label>
+                        <select id="trace-visibility">
+                            <option value="public">🌍 전체 공개</option>
+                            <option value="friends">👥 친구만</option>
+                            <option value="private">🔒 나만 보기</option>
+                        </select>
+                    </div>
+                    <div class="review-actions">
+                        <button id="save-trace-btn" class="btn btn-primary">💾 저장</button>
+                        <button id="discard-btn" class="btn btn-danger">✕ 취소</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 지도 화면 -->
+        <div id="map-view" class="view">
+            <div id="map-container"></div>
+            <div id="map-controls">
+                <button id="map-my-location" class="map-ctrl-btn" title="내 위치">📍</button>
+                <div id="map-filter">
+                    <button class="filter-btn active" data-filter="all">전체</button>
+                    <button class="filter-btn" data-filter="mine">내 흔적</button>
+                    <button class="filter-btn" data-filter="friends">친구</button>
+                </div>
+                <button id="explore-ai-btn" class="map-ctrl-btn explore-btn" title="AI 탐험 추천">🧭</button>
+            </div>
+
+            <!-- AI 탐험 추천 패널 -->
+            <div id="explore-panel" class="hidden">
+                <div id="explore-panel-header">
+                    <span>🧭 AI 탐험 큐레이션</span>
+                    <button id="explore-panel-close" class="icon-btn">✕</button>
+                </div>
+                <div id="explore-panel-body">
+                    <div id="explore-loading" class="hidden">
+                        <div class="explore-spinner"></div>
+                        <p>AI가 당신만의 코스를 분석 중...</p>
+                    </div>
+                    <div id="explore-results"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 채팅 화면 -->
+        <div id="chat-view" class="view">
+            <div id="chat-header">
+                <button id="chat-back-btn" class="icon-btn">←</button>
+                <span id="chat-partner-name">채팅</span>
+                <span id="chat-language-badge"></span>
+            </div>
+            <div id="chat-no-session">
+                <div class="no-session-icon">💬</div>
+                <p>대화 상대가 없습니다</p>
+                <p class="no-session-hint">📷 카메라 화면에서 주변 사용자를 클릭하거나<br>👥 프로필 탭의 친구 목록에서 채팅을 시작하세요</p>
+            </div>
+            <div id="chat-messages"></div>
+            <div id="chat-input-area">
+                <input type="text" id="chat-input" placeholder="메시지를 입력하세요..." autocomplete="off">
+                <button id="chat-send-btn" class="btn btn-primary">전송</button>
+            </div>
+        </div>
+
+        <!-- 프로필/연결 화면 -->
+        <div id="profile-view" class="view">
+            <div class="profile-section">
+                <h3>👤 내 프로필</h3>
+                <div class="profile-card">
+                    <div id="profile-avatar-container" class="profile-avatar-container">
+                        <div class="profile-avatar-placeholder">🌸</div>
+                    </div>
+                    <div class="profile-info">
+                        <span id="profile-nickname" class="profile-name"></span>
+                        <span id="profile-language" class="profile-lang"></span>
+                    </div>
+                    <div class="profile-settings">
+                        <label>공개 범위</label>
+                        <select id="profile-visibility">
+                            <option value="public">🌍 전체 공개</option>
+                            <option value="friends">👥 친구만</option>
+                            <option value="private">🔒 비공개</option>
+                        </select>
+                    </div>
+                    <button id="generate-avatar-btn" class="btn btn-secondary btn-sm">🎨 DALL-E AI 아바타 생성</button>
+                </div>
+            </div>
+
+            <div class="profile-section">
+                <h3>📨 연결 요청</h3>
+                <div id="pending-connections"></div>
+            </div>
+
+            <div class="profile-section">
+                <h3>👥 친구 목록</h3>
+                <div id="friends-list"></div>
+            </div>
+        </div>
+
+        <!-- 하단 네비게이션 -->
+        <nav id="bottom-nav">
+            <button class="nav-btn active" data-view="camera">
+                <span class="nav-icon">📷</span>
+                <span class="nav-label">카메라</span>
+            </button>
+            <button class="nav-btn" data-view="map">
+                <span class="nav-icon">🗺️</span>
+                <span class="nav-label">지도</span>
+            </button>
+            <button class="nav-btn" data-view="chat">
+                <span class="nav-icon">💬</span>
+                <span class="nav-label">채팅</span>
+            </button>
+            <button class="nav-btn" data-view="profile">
+                <span class="nav-icon">👤</span>
+                <span class="nav-label">프로필</span>
+            </button>
+        </nav>
+    </div>
+
+    <!-- 알림 토스트 -->
+    <div id="toast-container"></div>
+
+    <!-- 연결 요청 모달 -->
+    <div id="connection-modal" class="modal hidden">
+        <div class="modal-content">
+            <h3 id="modal-title">친구 요청</h3>
+            <p id="modal-message"></p>
+            <div class="modal-actions">
+                <button id="modal-confirm" class="btn btn-primary">확인</button>
+                <button id="modal-cancel" class="btn btn-secondary">취소</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="/static/js/camera.js?v=4"></script>
+    <script src="/static/js/map.js?v=4"></script>
+    <script src="/static/js/chat.js?v=4"></script>
+    <script src="/static/js/nearby.js?v=4"></script>
+    <script src="/static/js/sticker.js?v=1"></script>
+    <script src="/static/js/app.js?v=4"></script>
+</body>
+</html>
