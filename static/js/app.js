@@ -107,7 +107,6 @@ const App = (() => {
         // Start camera + nearby discovery
         CameraModule.start();
         NearbyModule.connect(currentUser.id);
-        StickerModule.init();
 
         loadProfile();
         loadConnections();
@@ -159,7 +158,6 @@ const App = (() => {
         const dataUrl = CameraModule.capture();
         if (!dataUrl) return toast('카메라가 활성화되지 않았습니다', 'error');
         capturedImage.src = dataUrl;
-        StickerModule.setCapturedPhoto(dataUrl);
         captureReview.classList.remove('hidden');
         traceCaption.value = '';
     }
@@ -171,9 +169,8 @@ const App = (() => {
             return;
         }
         try {
-            const photoData = await StickerModule.getFilteredPhotoData() || capturedImage.src;
             await api('POST', `/api/traces?user_id=${currentUser.id}`, {
-                photo_data: photoData,
+                photo_data: capturedImage.src,
                 lat: loc.lat,
                 lng: loc.lng,
                 caption: traceCaption.value.trim(),
@@ -188,7 +185,6 @@ const App = (() => {
 
     function discardCapture() {
         captureReview.classList.add('hidden');
-        StickerModule.setCapturedPhoto(null);
     }
 
     // ---- Nearby Users → AR Avatar Overlay ----

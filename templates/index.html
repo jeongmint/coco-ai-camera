@@ -75,30 +75,7 @@
 
             <!-- 촬영 후 리뷰 -->
             <div id="capture-review" class="hidden">
-                <!-- 사진 + 시즌 오버레이 -->
-                <div id="capture-photo-wrapper">
-                    <img id="captured-image" alt="captured">
-                    <div id="season-overlay"></div>
-                </div>
-
-                <!-- 시간 여행 필터 -->
-                <div id="season-filter-row" class="season-filter-row"></div>
-
-                <!-- AI 스티커 토글 버튼 -->
-                <button id="sticker-toggle-btn" class="sticker-toggle-btn">✨ AI 스티커 만들기</button>
-
-                <!-- AI 스티커 패널 -->
-                <div id="ai-sticker-panel" class="hidden">
-                    <div id="concept-grid" class="concept-grid"></div>
-                    <button id="gen-person-btn" class="btn btn-primary sticker-gen-btn" disabled>✨ 캐릭터 스티커 생성</button>
-                    <div id="sticker-spinner" class="sticker-spinner hidden">
-                        <div class="sticker-spinner-bar"></div>
-                        <p class="sticker-spinner-text">AI가 스티커를 만들고 있어요...</p>
-                    </div>
-                    <div id="sticker-output" class="hidden"></div>
-                </div>
-
-                <!-- 기존 저장 컨트롤 -->
+                <img id="captured-image" alt="captured">
                 <div class="review-controls">
                     <textarea id="trace-caption" placeholder="이 장소에 남길 메모..."></textarea>
                     <div class="visibility-selector">
@@ -218,6 +195,10 @@
                 <span class="nav-icon">👤</span>
                 <span class="nav-label">프로필</span>
             </button>
+            <a class="nav-btn nav-link" href="/sticker" target="_blank">
+                <span class="nav-icon">✨</span>
+                <span class="nav-label">AI 카메라</span>
+            </a>
         </nav>
     </div>
 
@@ -241,7 +222,6 @@
     <script src="/static/js/map.js?v=4"></script>
     <script src="/static/js/chat.js?v=4"></script>
     <script src="/static/js/nearby.js?v=4"></script>
-    <script src="/static/js/sticker.js?v=1"></script>
     <script src="/static/js/app.js?v=4"></script>
 </body>
 </html>

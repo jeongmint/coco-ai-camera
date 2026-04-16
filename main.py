@@ -33,6 +33,7 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="COCO - Camera Social Map", lifespan=lifespan)
 app.mount("/static", StaticFiles(directory="static"), name="static")
+app.mount("/sticker/static", StaticFiles(directory="time-camera-build/static"), name="sticker_static")
 
 # ---------------------------------------------------------------------------
 # Pydantic schemas
@@ -911,6 +912,16 @@ async def sticker_generate(req: StickerGenerateRequest):
             raise HTTPException(502, f"스티커 생성 실패: {resp.text[:300]}")
         b64_result = resp.json()["data"][0]["b64_json"]
         return {"sticker_data": f"data:image/png;base64,{b64_result}"}
+
+
+# ---------------------------------------------------------------------------
+# time-camera-ai React App  (/sticker, /sticker/*)
+# ---------------------------------------------------------------------------
+
+@app.get("/sticker", response_class=HTMLResponse)
+@app.get("/sticker/", response_class=HTMLResponse)
+async def sticker_app():
+    return FileResponse("time-camera-build/index.html")
 
 
 # ---------------------------------------------------------------------------
