@@ -1,11 +1,11 @@
 {
   "files": {
-    "main.js": "/sticker/static/js/main.238cba6f.js",
+    "main.js": "/sticker/static/js/main.8e515f1b.js",
     "static/media/result.mp3": "/sticker/static/media/result.9a2f9150a03ce372db59.mp3",
     "index.html": "/sticker/index.html",
-    "main.238cba6f.js.map": "/sticker/static/js/main.238cba6f.js.map"
+    "main.8e515f1b.js.map": "/sticker/static/js/main.8e515f1b.js.map"
   },
   "entrypoints": [
-    "static/js/main.238cba6f.js"
+    "static/js/main.8e515f1b.js"
   ]
 }
